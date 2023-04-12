@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ .Values.meta.namespace }}
+  name: hp-configmap
+  labels:
+    project: {{ .Values.meta.matchLabel }}
+data:
+  NAME: "hello from configmap"

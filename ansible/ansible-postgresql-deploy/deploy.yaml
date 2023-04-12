@@ -1,0 +1,7 @@
+- name: PostgreSQL deploy
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - { role: ansible-postgresql-deploy }

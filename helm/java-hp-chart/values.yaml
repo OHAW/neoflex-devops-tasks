@@ -1,0 +1,35 @@
+# Default values for java-app-teamcity.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+meta:
+  appName: hp-java
+  matchLabel: hello-page
+  namespace: hp-namespace
+
+podLiveCycle:
+  replicaCount: 2
+  terminationTime: 60
+  revisionHistoryLimit: 10
+  maxUnavailablePods: 25%
+  maxSurge: 1
+  typeStrategyDeployment: RollingUpdate
+  delayForProbes: 60
+  periodForProbes: 45
+
+image:
+  repository: localhost:5000/hp-java-prmt:latest
+  pullPolicy: IfNotPresent
+  port: 8080
+
+service:
+  type: NodePort
+  port: 30000
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 1024Mi
+  requests:
+    cpu: 200m
+    memory: 512Mi

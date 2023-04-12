@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.meta.appName }}
+  namespace: {{ .Values.meta.namespace }}
+  labels:
+    project: {{ .Values.meta.matchLabel }}
+spec:
+  replicas: {{ .Values.podLiveCycle.replicaCount }}
+  strategy:
+    type: {{ .Values.podLiveCycle.typeStrategyDeployment }}
+    rollingUpdate:
+      maxUnavailable: {{ .Values.podLiveCycle.maxUnavailablePods }}
+      maxSurge: {{ .Values.podLiveCycle.maxSurge }}
+  selector:
+    matchLabels:
+      project: {{ .Values.meta.matchLabel }}
+  template:
+    metadata:
+      labels:
+        project: {{ .Values.meta.matchLabel }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.meta.terminationTime }}
+      containers:
+        - name: hello-page-v1
+          image: {{ .Values.image.repository }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: NAME
+            valueFrom:
+              configMapKeyRef:
+                name: hp-configmap
+                key: NAME
+          ports:
+            - containerPort: {{ .Values.image.port }}
+              protocol: TCP
+              name: app
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+          readinessProbe:
+            httpGet: 
+              path: /greeting
+              port: {{ .Values.image.port }}
+              scheme: HTTP
+            initialDelaySeconds: {{ .Values.podLiveCycle.delayForProbes }}
+            periodSeconds: {{ .Values.podLiveCycle.periodForProbes }}
+          livenessProbe:
+            httpGet:
+              httpGet:
+              path: /greeting
+              port: {{ .Values.image.port }}
+              scheme: HTTP
+            initialDelaySeconds: {{ .Values.podLiveCycle.delayForProbes }}
+            periodSeconds: {{ .Values.podLiveCycle.delayForProbes }}

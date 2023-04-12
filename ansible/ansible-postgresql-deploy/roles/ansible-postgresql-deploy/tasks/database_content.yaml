@@ -1,0 +1,72 @@
+---
+  - name: create user for test database
+    user:
+      name: '{{ db_user }}'
+      state: present
+
+  - name: create database
+    community.postgresql.postgresql_db:
+      name: '{{ db_name }}'
+      encoding: UTF-8
+      template: template0
+    become: yes
+    become_user: postgres
+
+  - name: create database user
+    community.postgresql.postgresql_user:
+      state: present
+      name: "{{ db_user }}"
+      password: "{{ db_password }}"
+    become: yes
+    become_user: postgres
+
+  - name: grand database user
+    community.postgresql.postgresql_privs:
+      type: database
+      database: '{{ db_name }}'
+      roles: '{{ db_user }}'
+      grant_option: no
+      privs: all
+    become: yes
+    become_user: postgres
+
+  - name: create schema
+    community.postgresql.postgresql_schema:
+      db: '{{ db_name }}'
+      name: test
+      owner: '{{ db_user }}'
+    become: yes
+    become_user: postgres
+
+  - name: create a new tablespace
+    community.postgresql.postgresql_tablespace:
+      state: present
+      name: test
+      owner: '{{ db_user }}'
+      location: '{{ postgresql_dir }}/main'
+    become: yes
+    become_user: postgres
+
+  - name: create table
+    community.postgresql.postgresql_table:
+      db: '{{ db_name }}'
+      tablespace: test
+      table: test_data
+      columns:
+      - numder int not null
+      - somewords varchar unique not null
+      owner: '{{ db_user }}'
+    become: yes
+    become_user: postgres
+
+  - name: push data
+    copy:
+      src: data.sql
+      dest: /tmp/data.sql
+
+  - name: upload data
+    community.postgresql.postgresql_script:
+      db: '{{ db_name }}'
+      path: /tmp/data.sql
+    become: yes
+    become_user: postgres

@@ -1,0 +1,64 @@
+---
+# - name: repository configuration
+#   shell: echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+
+# - name: signing key
+#   shell: wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+
+
+- name: --- install postgresql supplementary packages ---
+  apt:
+    name: "{{ postgresql_supplementary_packages }}"
+    state: present
+    update_cache: yes
+
+- name: --- initialize repository signied key ---
+  apt_key:
+    url: "{{ postgresql_key }}"
+    state: present
+
+- name: --- download the repository configs ---
+  apt_repository:
+    repo: "{{ postgresql_repository }}"
+    state: present
+    filename: "{{ postgresql_repository_local_file_system_name }}"
+
+- name: --- download postgresql package ---
+  apt:
+    name: "{{ postgresql_packages }}"
+    state: present
+    update_cache: yes
+
+- name: --- check for posgresql data dir ---
+  file:
+    path: "{{ postgresql_dir }}/main"
+    owner: postgres
+    group: postgres
+    state: directory
+    mode: 0700
+
+- name: --- check for postgresql is initialize and exists ---
+  stat:
+    path: "{{ postgresql_dir }}/main/PG_VERSION"
+  register: postgres_dir_existince
+
+- name: --- initialize postgresql ---
+  become_user: postgres
+  shell: "{{ postgresql_dir }}/bin/initdb -D {{ postgresql_dir }}/main" # an ansible module for this ?
+  when: not postgres_dir_existince.stat.exists
+
+- name: --- configure pg_hba.conf ---
+  template:
+    src: templates/pg_hba.conf.j2
+    dest: "{{ postgresql_dir }}/main/pg_hba.conf"
+    owner: postgres
+    group: postgres
+    mode: 0600
+
+- name: --- check for postgresql service is enable ---
+  service: 
+    name: postgresql.service # make a variable to configure ?
+    state: started
+    enabled: yes
+
+- include_tasks: database_content.yaml

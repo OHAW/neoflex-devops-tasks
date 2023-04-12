@@ -1,0 +1,23 @@
+postgresql_version: '14'
+target: #ip address 
+host_user: #username
+host_become_pass: #password
+postgresql_supplementary_packages:
+  - gnupg
+  - python3-psycopg2
+  - acl
+postgresql_packages: 
+  - "postgresql-{{ postgresql_version }}"
+  - "postgresql-contrib-{{ postgresql_version }}"
+postgresql_key: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+postgresql_repository: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
+postgresql_repository_local_file_system_name: pgdg
+postgresql_dir: "/var/lib/postgresql/{{ postgresql_version }}"
+postgresql_config: "/etc/postgresql/{{ postgresql_version }}/main"
+value: 'log'
+db_name: test
+db_user: testuser
+db_password: postgres
+db_name: test
+db_user: testuser
+db_password: postgres

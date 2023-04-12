@@ -1,0 +1,13 @@
+- name: Restart Kafka service
+  service:
+      name: kafka
+      state: started
+      enabled: true 
+      sleep: 5
+
+- name: Restart Zookeeper service
+  service:
+      name: zookeeper
+      state: started
+      enabled: true
+      sleep: 5

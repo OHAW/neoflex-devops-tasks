@@ -1,0 +1,6 @@
+all:
+  hosts:
+    broker1:
+      ansible_ssh_host: 192.168.0.105
+      ansible_ssh_port: 22
+      ansible_become_pass: vagrant

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="6247e3dd-495e-4155-8d29-4fdb96c1d50c" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2021.1/project-config.xsd">
+  <name>Build</name>
+  <description />
+  <settings>
+    <parameters>
+      <param name="env.helmChart" value="java-app-teamcity" />
+      <param name="env.helmChartRepo" value="neoflex-chart" />
+      <param name="env.helmChartUrl" value="https://ohaw.github.io/neoflex-charts/" />
+      <param name="env.imageName" value="localhost:5000/hp-java-prmt" />
+      <param name="env.imageVersion" value="latest" />
+    </parameters>
+    <build-runners>
+      <runner id="RUNNER_1" name="build_app" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[=== START BUILDIN APP ===
+export JAVA_HOME=/usr/local/Cellar/openjdk/19.0.2/libexec/openjdk.jdk/Contents/Home
+mvn clean package]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_2" name="docker build and push" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[=== MAKE DOCKER IMAGE AND PUSH IT TO DOCKER REGISTRY ===
+docker build . -t %env.imageName%:%env.imageVersion%
+docker push %env.imageName%:%env.imageVersion%]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_3" name="add helm repo and install to k8s" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[=== INSTALL AND DEPLOY HELM CHART ===
+helm repo add %env.helmChartRepo% %env.helmChartUrl%
+helm install %env.helmChartRepo%/%env.helmChart% --generate-name]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <vcs-settings>
+      <vcs-entry-ref root-id="JavaAppTeamcity_HttpsGithubComOhawJavaAppTeamcityGitRefsHeadsMain" />
+    </vcs-settings>
+    <requirements>
+      <equals id="RQ_1" name="teamcity.agent.jvm.os.name" value="Mac OS X" />
+    </requirements>
+    <build-triggers>
+      <build-trigger id="TRIGGER_1" type="vcsTrigger">
+        <parameters>
+          <param name="branchFilter" value="+:master" />
+          <param name="enableQueueOptimization" value="true" />
+          <param name="quietPeriodMode" value="DO_NOT_USE" />
+        </parameters>
+      </build-trigger>
+    </build-triggers>
+    <build-extensions>
+      <extension id="perfmon" type="perfmon">
+        <parameters />
+      </extension>
+    </build-extensions>
+    <cleanup />
+  </settings>
+</build-type>
+

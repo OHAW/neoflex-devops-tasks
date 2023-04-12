@@ -1,0 +1,7 @@
+- name: Download kafka distrib
+  hosts: broker1
+  gather_facts: false
+  become: true
+
+  roles:
+    - { role: ansible-kafka-deploy }
